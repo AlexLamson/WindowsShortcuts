@@ -14,6 +14,7 @@ import java.text.ParseException;
  * Originally called LnkParser
  *
  * Written by: (the stack overflow users, obviously!)
+ *   Apache Commons VFS dependency removed by crysxd (why were we using that!?) https://github.com/crysxd
  *   Headerified, refactored and commented by Code Bling http://stackoverflow.com/users/675721/code-bling
  *   Network file support added by Stefan Cordes http://stackoverflow.com/users/81330/stefan-cordes
  *   Adapted by Sam Brightman http://stackoverflow.com/users/2492/sam-brightman
@@ -39,6 +40,20 @@ public class WindowsShortcut
      * @return true if may be a link, false otherwise
      * @throws IOException if an IOException is thrown while reading from the file
      */
+    public static boolean isPotentialValidLink(File file) throws IOException {
+        final int minimum_length = 0x64;
+        InputStream fis = new FileInputStream(file);
+        boolean isPotentiallyValid = false;
+        try {
+            isPotentiallyValid = file.isFile()
+                && file.getName().toLowerCase().endsWith(".lnk")
+                && fis.available() >= minimum_length
+                && isMagicPresent(getBytes(fis, 32));
+        } finally {
+            fis.close();
+        }
+        return isPotentiallyValid;
+    }
 
     public WindowsShortcut(File file) throws IOException, ParseException {
         InputStream in = new FileInputStream(file);
